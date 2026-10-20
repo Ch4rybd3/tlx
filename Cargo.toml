@@ -1,0 +1,37 @@
+[package]
+name = "tlx"
+version = "0.1.0"
+edition = "2024"
+description = "Timeline eXplorer - cross-platform forensic timeline / CSV viewer inspired by Eric Zimmerman's Timeline Explorer"
+license = "MIT"
+repository = "https://github.com/Ch4rybd3/tlx"
+readme = "README.md"
+keywords = ["forensics", "dfir", "timeline", "csv", "evtx"]
+categories = ["visualization", "command-line-utilities"]
+
+[dependencies]
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow", "wayland", "x11", "clipboard", "system_fonts"] }
+egui = "0.37"
+csv = "1.4"
+calamine = { version = "0.37", features = ["dates"] }
+rfd = "0.17"
+chrono = "0.4"
+regex = "1.13"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rayon = "1.12"
+dirs = "6"
+memchr = "2"
+evtx = { version = "0.12.3", default-features = false, features = ["multithreading"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 4
+strip = true
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
