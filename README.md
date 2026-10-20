@@ -8,7 +8,13 @@ modelled on Eric Zimmerman's **Timeline Explorer**. Single native binary (egui/e
 
 ## Download
 
-Prebuilt Linux and Windows binaries are on the [Releases](https://github.com/Ch4rybd3/tlx/releases) page.
+Ready-to-run binaries of the latest release, no install needed:
+
+- **Windows:** [tlx-windows-x86_64.exe](https://github.com/Ch4rybd3/tlx/releases/latest/download/tlx-windows-x86_64.exe)
+- **Linux:** [tlx-linux-x86_64](https://github.com/Ch4rybd3/tlx/releases/latest/download/tlx-linux-x86_64), then `chmod +x tlx-linux-x86_64`
+
+Checksums and older versions are on the [Releases](https://github.com/Ch4rybd3/tlx/releases) page.
+The binaries are not code-signed, so Windows SmartScreen may warn on first launch.
 
 ## Build
 

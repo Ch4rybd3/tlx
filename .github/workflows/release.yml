@@ -3,6 +3,14 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to (re)build and attach binaries to
+        required: true
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 permissions:
   contents: write
@@ -16,11 +24,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes=".github/release-notes/${GITHUB_REF_NAME}.md"
+          gh release view "$TAG" >/dev/null 2>&1 && exit 0
+          notes=".github/release-notes/${TAG}.md"
           if [ -f "$notes" ]; then
-            gh release create "$GITHUB_REF_NAME" --title "TLX $GITHUB_REF_NAME" --notes-file "$notes"
+            gh release create "$TAG" --title "TLX $TAG" --notes-file "$notes"
           else
-            gh release create "$GITHUB_REF_NAME" --title "TLX $GITHUB_REF_NAME" --generate-notes
+            gh release create "$TAG" --title "TLX $TAG" --generate-notes
           fi
 
   build:
@@ -30,39 +39,27 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
+            bin: tlx
+            asset: tlx-linux-x86_64
           - os: windows-latest
-            target: x86_64-pc-windows-msvc
+            bin: tlx.exe
+            asset: tlx-windows-x86_64.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.TAG }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev
       - run: cargo build --release --locked
-      - name: Package (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          name="tlx-${GITHUB_REF_NAME}-${{ matrix.target }}"
-          mkdir "$name" && cp target/release/tlx README.md LICENSE "$name/"
-          tar czf "$name.tar.gz" "$name"
-          sha256sum "$name.tar.gz" > "$name.tar.gz.sha256"
-          echo "ASSETS=$name.tar.gz $name.tar.gz.sha256" >> "$GITHUB_ENV"
-      - name: Package (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $name = "tlx-$env:GITHUB_REF_NAME-${{ matrix.target }}"
-          New-Item -ItemType Directory $name | Out-Null
-          Copy-Item target/release/tlx.exe, README.md, LICENSE $name
-          Compress-Archive -Path $name -DestinationPath "$name.zip"
-          $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
-          "$hash  $name.zip" | Out-File -Encoding ascii "$name.zip.sha256"
-          "ASSETS=$name.zip $name.zip.sha256" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
       - name: Upload to release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" $ASSETS --clobber
+        run: |
+          cp "target/release/${{ matrix.bin }}" "${{ matrix.asset }}"
+          sha256sum "${{ matrix.asset }}" > "${{ matrix.asset }}.sha256"
+          gh release upload "$TAG" "${{ matrix.asset }}" "${{ matrix.asset }}.sha256" --clobber
