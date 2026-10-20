@@ -6,6 +6,10 @@
 Cross-platform (Linux / Windows) forensic timeline & CSV viewer written in Rust,
 modelled on Eric Zimmerman's **Timeline Explorer**. Single native binary (egui/eframe, OpenGL).
 
+## Download
+
+Prebuilt Linux and Windows binaries are on the [Releases](https://github.com/Ch4rybd3/tlx/releases) page.
+
 ## Build
 
 Requires a recent stable Rust toolchain (edition 2024, Rust 1.85+).
